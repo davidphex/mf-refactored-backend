@@ -51,6 +51,9 @@ func (app *Application) setupRoutes() http.Handler {
 		v1.GET("/health", handlers.HealthCheck)
 		v1.GET("/albums", app.AlbumHandler.GetAllAlbums)
 		v1.GET("/albums/:id", app.AlbumHandler.GetAlbumByID)
+		v1.POST("/albums", app.AlbumHandler.InsertAlbum)
+		v1.PUT("/albums/:id", app.AlbumHandler.UpdateAlbum)
+		v1.DELETE("/albums/:id", app.AlbumHandler.DeleteAlbum)
 	}
 
 	return router

@@ -8,6 +8,9 @@ import (
 type AlbumService interface {
 	GetAllAlbums() (*[]models.Album, error)
 	GetAlbumByID(id string) (*models.Album, error)
+	InsertAlbum(album *models.Album) error
+	UpdateAlbum(album *models.Album) error
+	DeleteAlbum(id string) error
 }
 
 type albumService struct {
@@ -19,9 +22,21 @@ func NewAlbumService(repo repository.AlbumRepository) AlbumService {
 }
 
 func (s *albumService) GetAllAlbums() (*[]models.Album, error) {
-	return s.repo.GetAllAlbums()
+	return s.repo.GetAll()
 }
 
 func (s *albumService) GetAlbumByID(id string) (*models.Album, error) {
-	return s.repo.GetAlbumByID(id)
+	return s.repo.GetById(id)
+}
+
+func (s *albumService) InsertAlbum(album *models.Album) error {
+	return s.repo.Insert(album)
+}
+
+func (s *albumService) UpdateAlbum(album *models.Album) error {
+	return s.repo.Update(album)
+}
+
+func (s *albumService) DeleteAlbum(id string) error {
+	return s.repo.Delete(id)
 }
