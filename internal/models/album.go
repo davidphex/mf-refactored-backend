@@ -21,3 +21,23 @@ type Album struct {
 	CreatedAt   time.Time       `bson:"createdAt" json:"createdAt"`
 	UpdatedAt   time.Time       `bson:"updatedAt" json:"updatedAt"`
 }
+
+type AlbumPage struct {
+	ID         bson.ObjectID      `bson:"_id" json:"id"`
+	AlbumID    bson.ObjectID      `bson:"albumId" json:"albumId" binding:"required"`
+	Type       string             `bson:"type" json:"type" binding:"required"`
+	PageNumber int                `bson:"pageNumber" json:"pageNumber" binding:"required"`
+	Elements   []AlbumPageElement `bson:"elements" json:"elements" binding:"required"`
+}
+
+type AlbumPageElement struct {
+	ID     bson.ObjectID     `bson:"_id" json:"id"`
+	Type   string            `bson:"type" json:"type" binding:"required"`
+	Width  float32           `bson:"width" json:"width" binding:"required"`
+	Height float32           `bson:"height" json:"height" binding:"required"`
+	Top    float32           `bson:"top" json:"top" binding:"required"`
+	Left   float32           `bson:"left" json:"left" binding:"required"`
+	Style  map[string]string `bson:"style" json:"style" binding:"required"`
+	Src    string            `bson:"src,omitempty" json:"src,omitempty"`
+	Alt    string            `bson:"alt,omitempty" json:"alt,omitempty"`
+}
