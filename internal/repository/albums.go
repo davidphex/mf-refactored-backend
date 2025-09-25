@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-const COLLECTION_NAME = "albums"
+const COLLECTION_NAME_ALBUMS = "albums"
 
 type AlbumRepository interface {
 	GetAll() (*[]models.Album, error)
@@ -19,19 +19,19 @@ type AlbumRepository interface {
 	Delete(id string) error
 }
 
-type repository struct {
+type albumRepository struct {
 	db *mongo.Database
 }
 
 func NewAlbumRepository(db *mongo.Database) AlbumRepository {
-	return &repository{db: db}
+	return &albumRepository{db: db}
 }
 
-func (r *repository) GetAll() (*[]models.Album, error) {
+func (r *albumRepository) GetAll() (*[]models.Album, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	cursor, err := r.db.Collection(COLLECTION_NAME).Find(ctx, bson.D{})
+	cursor, err := r.db.Collection(COLLECTION_NAME_ALBUMS).Find(ctx, bson.D{})
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (r *repository) GetAll() (*[]models.Album, error) {
 	return &albums, nil
 }
 
-func (r *repository) GetById(id string) (*models.Album, error) {
+func (r *albumRepository) GetById(id string) (*models.Album, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -55,7 +55,7 @@ func (r *repository) GetById(id string) (*models.Album, error) {
 	}
 
 	var album models.Album
-	err = r.db.Collection(COLLECTION_NAME).FindOne(ctx, bson.M{"_id": bsonID}).Decode(&album)
+	err = r.db.Collection(COLLECTION_NAME_ALBUMS).FindOne(ctx, bson.M{"_id": bsonID}).Decode(&album)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (r *repository) GetById(id string) (*models.Album, error) {
 	return &album, nil
 }
 
-func (r *repository) Insert(album *models.Album) error {
+func (r *albumRepository) Insert(album *models.Album) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -72,22 +72,22 @@ func (r *repository) Insert(album *models.Album) error {
 	album.CreatedAt = time.Now()
 	album.UpdatedAt = time.Now()
 
-	_, err := r.db.Collection(COLLECTION_NAME).InsertOne(ctx, album)
+	_, err := r.db.Collection(COLLECTION_NAME_ALBUMS).InsertOne(ctx, album)
 	return err
 }
 
-func (r *repository) Update(album *models.Album) error {
+func (r *albumRepository) Update(album *models.Album) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// Update the UpdatedAt timestamp
 	album.UpdatedAt = time.Now()
 
-	_, err := r.db.Collection(COLLECTION_NAME).UpdateOne(ctx, bson.M{"_id": album.ID}, bson.M{"$set": album})
+	_, err := r.db.Collection(COLLECTION_NAME_ALBUMS).UpdateOne(ctx, bson.M{"_id": album.ID}, bson.M{"$set": album})
 	return err
 }
 
-func (r *repository) Delete(id string) error {
+func (r *albumRepository) Delete(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -96,6 +96,6 @@ func (r *repository) Delete(id string) error {
 		return err
 	}
 
-	_, err = r.db.Collection(COLLECTION_NAME).DeleteOne(ctx, bson.M{"_id": bsonID})
+	_, err = r.db.Collection(COLLECTION_NAME_ALBUMS).DeleteOne(ctx, bson.M{"_id": bsonID})
 	return err
 }

@@ -21,6 +21,7 @@ type Application struct {
 	Config       Config
 	DBClient     *mongo.Client
 	AlbumHandler *handlers.AlbumHandler
+	PageHandler  *handlers.PageHandler
 }
 
 func New(cfg Config, client *mongo.Client) *Application {
@@ -36,10 +37,15 @@ func New(cfg Config, client *mongo.Client) *Application {
 	albumService := services.NewAlbumService(albumRepo)
 	albumHandler := handlers.NewAlbumHandler(albumService)
 
+	pageRepo := repository.NewPagesRepository(db)
+	pageService := services.NewPagesService(pageRepo)
+	pageHandler := handlers.NewPageHandler(pageService)
+
 	return &Application{
 		Config:       cfg,
 		DBClient:     client,
 		AlbumHandler: albumHandler,
+		PageHandler:  pageHandler,
 	}
 }
 
@@ -54,6 +60,8 @@ func (app *Application) setupRoutes() http.Handler {
 		v1.POST("/albums", app.AlbumHandler.InsertAlbum)
 		v1.PUT("/albums/:id", app.AlbumHandler.UpdateAlbum)
 		v1.DELETE("/albums/:id", app.AlbumHandler.DeleteAlbum)
+
+		v1.GET("/albums/:id/pages", app.PageHandler.GetPages)
 	}
 
 	return router
