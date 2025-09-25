@@ -38,7 +38,7 @@ func New(cfg Config, client *mongo.Client) *Application {
 	albumHandler := handlers.NewAlbumHandler(albumService)
 
 	pageRepo := repository.NewPagesRepository(db)
-	pageService := services.NewPagesService(pageRepo)
+	pageService := services.NewPagesService(pageRepo, albumRepo)
 	pageHandler := handlers.NewPageHandler(pageService)
 
 	return &Application{
@@ -60,8 +60,12 @@ func (app *Application) setupRoutes() http.Handler {
 		v1.POST("/albums", app.AlbumHandler.InsertAlbum)
 		v1.PUT("/albums/:id", app.AlbumHandler.UpdateAlbum)
 		v1.DELETE("/albums/:id", app.AlbumHandler.DeleteAlbum)
+		v1.GET("/albums/:id/pages", app.PageHandler.GetAlbumPages)
 
-		v1.GET("/albums/:id/pages", app.PageHandler.GetPages)
+		v1.GET("/pages/:id", app.PageHandler.GetPage)
+		v1.POST("/pages", app.PageHandler.InsertPage)
+		v1.PUT("/pages/:id", app.PageHandler.UpdatePage)
+		v1.DELETE("/pages/:id", app.PageHandler.DeletePage)
 	}
 
 	return router

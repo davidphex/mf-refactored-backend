@@ -28,6 +28,8 @@ type AlbumPage struct {
 	Type       string             `bson:"type" json:"type" binding:"required"`
 	PageNumber int                `bson:"pageNumber" json:"pageNumber" binding:"required"`
 	Elements   []AlbumPageElement `bson:"elements" json:"elements" binding:"required"`
+	CreatedAt  time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt  time.Time          `bson:"updatedAt" json:"updatedAt"`
 }
 
 type AlbumPageElement struct {
