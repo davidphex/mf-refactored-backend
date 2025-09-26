@@ -66,6 +66,9 @@ func (app *Application) setupRoutes() http.Handler {
 		v1.POST("/pages", app.PageHandler.InsertPage)
 		v1.PUT("/pages/:id", app.PageHandler.UpdatePage)
 		v1.DELETE("/pages/:id", app.PageHandler.DeletePage)
+
+		v1.PUT("/pages/:id/elements", app.PageHandler.UpdatePageElements)
+
 	}
 
 	return router

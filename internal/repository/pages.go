@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/davidphex/memoryframe-backend/internal/models"
@@ -40,8 +39,6 @@ func (r *pagesRepository) GetByAlbumId(albumId string) (*[]models.AlbumPage, err
 		return nil, err
 	}
 
-	fmt.Printf("Fetching pages for album ID: %s\n", albumId)
-
 	var pages []models.AlbumPage
 	cursor, err := r.db.Collection(COLLECTION_NAME_PAGES).Find(ctx, bson.M{"albumId": albumObjectId})
 	if err != nil {
@@ -52,8 +49,6 @@ func (r *pagesRepository) GetByAlbumId(albumId string) (*[]models.AlbumPage, err
 	if err = cursor.All(ctx, &pages); err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("Retrieved %d pages for album ID %s\n", len(pages), albumId)
 
 	return &pages, nil
 }

@@ -14,6 +14,9 @@ type PagesService interface {
 
 	// Custom query
 	GetAlbumPages(albumId string) (*[]models.AlbumPage, error)
+
+	// Custom methods
+	UpdatePageElements(pageId string, elements []models.AlbumPageElement) error
 }
 
 type pagesService struct {
@@ -61,4 +64,19 @@ func (s *pagesService) DeletePage(pageId string) error {
 
 func (s *pagesService) GetAlbumPages(albumId string) (*[]models.AlbumPage, error) {
 	return s.pagesRepo.GetByAlbumId(albumId)
+}
+
+func (s *pagesService) UpdatePageElements(pageId string, elements []models.AlbumPageElement) error {
+	page, err := s.pagesRepo.Get(pageId)
+	if err != nil {
+		return err
+	}
+	if page == nil {
+		return nil
+	}
+
+	// Update the elements
+	page.Elements = elements
+
+	return s.pagesRepo.Update(page)
 }
