@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/davidphex/memoryframe-backend/internal/database"
 	"github.com/davidphex/memoryframe-backend/internal/handlers"
 	"github.com/davidphex/memoryframe-backend/internal/repository"
 	"github.com/davidphex/memoryframe-backend/internal/services"
@@ -22,6 +23,7 @@ type Application struct {
 	DBClient     *mongo.Client
 	AlbumHandler *handlers.AlbumHandler
 	PageHandler  *handlers.PageHandler
+	PhotoHandler *handlers.PhotoHandler
 }
 
 func New(cfg Config, client *mongo.Client) *Application {
@@ -32,6 +34,7 @@ func New(cfg Config, client *mongo.Client) *Application {
 	}
 
 	db := client.Database(DB_NAME)
+	cld := database.InitCloudinary()
 
 	albumRepo := repository.NewAlbumRepository(db)
 	albumService := services.NewAlbumService(albumRepo)
@@ -41,11 +44,16 @@ func New(cfg Config, client *mongo.Client) *Application {
 	pageService := services.NewPagesService(pageRepo, albumRepo)
 	pageHandler := handlers.NewPageHandler(pageService)
 
+	photoRepo := repository.NewPhotoRepository(db, cld)
+	photoService := services.NewPhotoService(photoRepo, albumRepo)
+	photoHandler := handlers.NewPhotoHandler(photoService)
+
 	return &Application{
 		Config:       cfg,
 		DBClient:     client,
 		AlbumHandler: albumHandler,
 		PageHandler:  pageHandler,
+		PhotoHandler: photoHandler,
 	}
 }
 
@@ -61,6 +69,7 @@ func (app *Application) setupRoutes() http.Handler {
 		v1.PUT("/albums/:id", app.AlbumHandler.UpdateAlbum)
 		v1.DELETE("/albums/:id", app.AlbumHandler.DeleteAlbum)
 		v1.GET("/albums/:id/pages", app.PageHandler.GetAlbumPages)
+		v1.POST("/albums/:id/photos", app.PhotoHandler.UploadPhoto)
 
 		v1.GET("/pages/:id", app.PageHandler.GetPage)
 		v1.POST("/pages", app.PageHandler.InsertPage)
@@ -68,7 +77,6 @@ func (app *Application) setupRoutes() http.Handler {
 		v1.DELETE("/pages/:id", app.PageHandler.DeletePage)
 
 		v1.PUT("/pages/:id/elements", app.PageHandler.UpdatePageElements)
-
 	}
 
 	return router

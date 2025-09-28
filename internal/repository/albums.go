@@ -17,6 +17,8 @@ type AlbumRepository interface {
 	Insert(album *models.Album) error
 	Update(album *models.Album) error
 	Delete(id string) error
+
+	AddPhotoToAlbum(albumId string, photoId string) error
 }
 
 type albumRepository struct {
@@ -97,5 +99,23 @@ func (r *albumRepository) Delete(id string) error {
 	}
 
 	_, err = r.db.Collection(COLLECTION_NAME_ALBUMS).DeleteOne(ctx, bson.M{"_id": bsonID})
+	return err
+}
+
+func (r *albumRepository) AddPhotoToAlbum(albumId string, photoId string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	albumObjectId, err := bson.ObjectIDFromHex(albumId)
+	if err != nil {
+		return err
+	}
+
+	photoObjectId, err := bson.ObjectIDFromHex(photoId)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.Collection(COLLECTION_NAME_ALBUMS).UpdateOne(ctx, bson.M{"_id": albumObjectId}, bson.M{"$push": bson.M{"photos": photoObjectId}})
 	return err
 }
