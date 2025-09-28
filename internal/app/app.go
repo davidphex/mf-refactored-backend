@@ -36,15 +36,17 @@ func New(cfg Config, client *mongo.Client) *Application {
 	db := client.Database(DB_NAME)
 	cld := database.InitCloudinary()
 
+	// Initialize repositories
 	albumRepo := repository.NewAlbumRepository(db)
-	albumService := services.NewAlbumService(albumRepo)
+	pageRepo := repository.NewPagesRepository(db)
+	photoRepo := repository.NewPhotoRepository(db, cld)
+
+	albumService := services.NewAlbumService(albumRepo, photoRepo)
 	albumHandler := handlers.NewAlbumHandler(albumService)
 
-	pageRepo := repository.NewPagesRepository(db)
 	pageService := services.NewPagesService(pageRepo, albumRepo)
 	pageHandler := handlers.NewPageHandler(pageService)
 
-	photoRepo := repository.NewPhotoRepository(db, cld)
 	photoService := services.NewPhotoService(photoRepo, albumRepo)
 	photoHandler := handlers.NewPhotoHandler(photoService)
 
@@ -69,6 +71,7 @@ func (app *Application) setupRoutes() http.Handler {
 		v1.PUT("/albums/:id", app.AlbumHandler.UpdateAlbum)
 		v1.DELETE("/albums/:id", app.AlbumHandler.DeleteAlbum)
 		v1.GET("/albums/:id/pages", app.PageHandler.GetAlbumPages)
+		v1.GET("/albums/:id/export", app.AlbumHandler.ExportAlbum)
 
 		v1.POST("/albums/:id/photos", app.PhotoHandler.UploadPhoto)
 		v1.GET("/albums/:id/photos", app.PhotoHandler.GetAlbumPhotos)

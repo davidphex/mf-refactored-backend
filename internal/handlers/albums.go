@@ -101,3 +101,23 @@ func (h *AlbumHandler) DeleteAlbum(c *gin.Context) {
 
 	c.Status(http.StatusNoContent)
 }
+
+func (h *AlbumHandler) ExportAlbum(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID parameter is required"})
+		return
+	}
+
+	exportData, err := h.service.GeneratePDF(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if exportData == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Album not found"})
+		return
+	}
+
+	c.Data(http.StatusOK, "application/pdf", exportData)
+}

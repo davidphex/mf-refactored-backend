@@ -1,8 +1,13 @@
 package services
 
 import (
+	"bytes"
+	"html/template"
+	"os"
+
 	"github.com/davidphex/memoryframe-backend/internal/models"
 	"github.com/davidphex/memoryframe-backend/internal/repository"
+	"github.com/davidphex/memoryframe-backend/internal/utils"
 )
 
 type AlbumService interface {
@@ -11,32 +16,99 @@ type AlbumService interface {
 	InsertAlbum(album *models.Album) error
 	UpdateAlbum(album *models.Album) error
 	DeleteAlbum(id string) error
+
+	GeneratePDF(albumID string) ([]byte, error)
 }
 
 type albumService struct {
-	repo repository.AlbumRepository
+	albumRepo repository.AlbumRepository
+	photoRepo repository.PhotoRepository
 }
 
-func NewAlbumService(repo repository.AlbumRepository) AlbumService {
-	return &albumService{repo: repo}
+func NewAlbumService(albumRepo repository.AlbumRepository, photoRepo repository.PhotoRepository) AlbumService {
+	return &albumService{albumRepo: albumRepo, photoRepo: photoRepo}
 }
 
 func (s *albumService) GetAllAlbums() (*[]models.Album, error) {
-	return s.repo.GetAll()
+	return s.albumRepo.GetAll()
 }
 
 func (s *albumService) GetAlbumByID(id string) (*models.Album, error) {
-	return s.repo.GetById(id)
+	return s.albumRepo.GetById(id)
 }
 
 func (s *albumService) InsertAlbum(album *models.Album) error {
-	return s.repo.Insert(album)
+	return s.albumRepo.Insert(album)
 }
 
 func (s *albumService) UpdateAlbum(album *models.Album) error {
-	return s.repo.Update(album)
+	return s.albumRepo.Update(album)
 }
 
 func (s *albumService) DeleteAlbum(id string) error {
-	return s.repo.Delete(id)
+	return s.albumRepo.Delete(id)
+}
+
+func (s *albumService) GeneratePDF(albumId string) ([]byte, error) {
+	album, err := s.albumRepo.GetById(albumId)
+	if err != nil {
+		return nil, err
+	}
+	if album == nil {
+		return nil, nil // Album not found
+	}
+
+	// Get the album photos
+	photos, err := s.photoRepo.GetByAlbumId(albumId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Prepare the HTML template
+	tmpl, err := template.ParseFiles("internal/templates/index.html")
+	if err != nil {
+		return nil, err
+	}
+
+	// Render the template with album data
+	var htmlBuffer bytes.Buffer
+	err = tmpl.Execute(&htmlBuffer, struct {
+		Title       string
+		Description string
+		Photos      []*models.Photo
+	}{
+		Title:       album.Title,
+		Description: album.Description,
+		Photos:      photos,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Write the HTML buffer to a temp file
+	htmlFilePath := "/tmp/index.html"
+	err = os.WriteFile(htmlFilePath, htmlBuffer.Bytes(), 0644)
+	if err != nil {
+		return nil, err
+	}
+
+	// Write CSS to file
+	cssFilePath := "/tmp/style.css"
+	cssContent, err := os.ReadFile("internal/templates/style.css")
+	if err != nil {
+		return nil, err
+	}
+	err = os.WriteFile(cssFilePath, cssContent, 0644)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate PDF using Gotenberg
+	pdfBytes, err := utils.GenerateGotenbergPDF(htmlFilePath, cssFilePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return pdfBytes, nil
+
 }
