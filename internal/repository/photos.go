@@ -19,6 +19,7 @@ const COLLECTION_NAME_PHOTOS = "photos"
 type PhotoRepository interface {
 	// Basic CRUD operations
 	Get(photoId string) (*models.Photo, error)
+	GetByAlbumId(albumId string) ([]*models.Photo, error)
 	Insert(file multipart.File, fileName string, albumId string) (string, error) // returns the photo ID
 	Update(photo *models.Photo) error
 	Delete(photoId string) error
@@ -34,8 +35,47 @@ func NewPhotoRepository(db *mongo.Database, cld *cloudinary.Cloudinary) PhotoRep
 }
 
 func (r *photoRepository) Get(photoId string) (*models.Photo, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
 
-	return nil, nil
+	photoObjectId, err := bson.ObjectIDFromHex(photoId)
+	if err != nil {
+		return nil, err
+	}
+
+	var photo models.Photo
+	err = r.db.Collection(COLLECTION_NAME_PHOTOS).FindOne(ctx, bson.M{"_id": photoObjectId}).Decode(&photo)
+	if err != nil {
+		return nil, err
+	}
+
+	return &photo, nil
+}
+
+func (r *photoRepository) GetByAlbumId(albumId string) ([]*models.Photo, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	albumObjectId, err := bson.ObjectIDFromHex(albumId)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := bson.M{"albumId": albumObjectId}
+
+	cursor, err := r.db.Collection(COLLECTION_NAME_PHOTOS).Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	// Transform the cursor results into a slice of Photo models
+	var photos []*models.Photo
+	if err = cursor.All(ctx, &photos); err != nil {
+		return nil, err
+	}
+
+	return photos, nil
 }
 
 func (r *photoRepository) Insert(file multipart.File, fileName string, albumId string) (string, error) {

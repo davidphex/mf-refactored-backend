@@ -3,11 +3,14 @@ package services
 import (
 	"mime/multipart"
 
+	"github.com/davidphex/memoryframe-backend/internal/models"
 	"github.com/davidphex/memoryframe-backend/internal/repository"
 )
 
 type PhotoService interface {
 	UploadPhoto(fileHeader *multipart.FileHeader, albumId string) error
+	GetPhotosByAlbumId(albumId string) ([]*models.Photo, error)
+	GetPhoto(photoId string) (*models.Photo, error)
 }
 
 type photoService struct {
@@ -41,4 +44,12 @@ func (s *photoService) UploadPhoto(fileHeader *multipart.FileHeader, albumId str
 	}
 
 	return nil
+}
+
+func (s *photoService) GetPhotosByAlbumId(albumId string) ([]*models.Photo, error) {
+	return s.photoRepo.GetByAlbumId(albumId)
+}
+
+func (s *photoService) GetPhoto(photoId string) (*models.Photo, error) {
+	return s.photoRepo.Get(photoId)
 }

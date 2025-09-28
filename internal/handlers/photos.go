@@ -33,5 +33,40 @@ func (h *PhotoHandler) UploadPhoto(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{"message": "Photo uploaded successfully"})
+}
 
+func (h *PhotoHandler) GetAlbumPhotos(c *gin.Context) {
+	albumId := c.Param("id")
+	if albumId == "" {
+		c.JSON(400, gin.H{"error": "Album ID is required"})
+		return
+	}
+
+	photos, err := h.service.GetPhotosByAlbumId(albumId)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to fetch photos: " + err.Error()})
+		return
+	}
+
+	c.JSON(200, photos)
+}
+
+func (h *PhotoHandler) GetPhoto(c *gin.Context) {
+	photoId := c.Param("id")
+	if photoId == "" {
+		c.JSON(400, gin.H{"error": "Photo ID is required"})
+		return
+	}
+
+	photo, err := h.service.GetPhoto(photoId)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to fetch photo: " + err.Error()})
+		return
+	}
+	if photo == nil {
+		c.JSON(404, gin.H{"error": "Photo not found"})
+		return
+	}
+
+	c.JSON(200, photo)
 }

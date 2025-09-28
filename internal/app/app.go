@@ -69,7 +69,11 @@ func (app *Application) setupRoutes() http.Handler {
 		v1.PUT("/albums/:id", app.AlbumHandler.UpdateAlbum)
 		v1.DELETE("/albums/:id", app.AlbumHandler.DeleteAlbum)
 		v1.GET("/albums/:id/pages", app.PageHandler.GetAlbumPages)
+
 		v1.POST("/albums/:id/photos", app.PhotoHandler.UploadPhoto)
+		v1.GET("/albums/:id/photos", app.PhotoHandler.GetAlbumPhotos)
+
+		v1.GET("/photos/:id", app.PhotoHandler.GetPhoto)
 
 		v1.GET("/pages/:id", app.PageHandler.GetPage)
 		v1.POST("/pages", app.PageHandler.InsertPage)
