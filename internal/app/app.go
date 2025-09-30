@@ -24,6 +24,7 @@ type Application struct {
 	AlbumHandler *handlers.AlbumHandler
 	PageHandler  *handlers.PageHandler
 	PhotoHandler *handlers.PhotoHandler
+	UserHandler  *handlers.UserHandler
 }
 
 func New(cfg Config, client *mongo.Client) *Application {
@@ -40,6 +41,7 @@ func New(cfg Config, client *mongo.Client) *Application {
 	albumRepo := repository.NewAlbumRepository(db)
 	pageRepo := repository.NewPagesRepository(db)
 	photoRepo := repository.NewPhotoRepository(db, cld)
+	userRepo := repository.NewUserRepository(db)
 
 	albumService := services.NewAlbumService(albumRepo, photoRepo, pageRepo)
 	albumHandler := handlers.NewAlbumHandler(albumService)
@@ -50,12 +52,16 @@ func New(cfg Config, client *mongo.Client) *Application {
 	photoService := services.NewPhotoService(photoRepo, albumRepo)
 	photoHandler := handlers.NewPhotoHandler(photoService)
 
+	userService := services.NewUserService(userRepo)
+	userHandler := handlers.NewUserHandler(userService)
+
 	return &Application{
 		Config:       cfg,
 		DBClient:     client,
 		AlbumHandler: albumHandler,
 		PageHandler:  pageHandler,
 		PhotoHandler: photoHandler,
+		UserHandler:  userHandler,
 	}
 }
 
@@ -84,6 +90,9 @@ func (app *Application) setupRoutes() http.Handler {
 		v1.DELETE("/pages/:id", app.PageHandler.DeletePage)
 
 		v1.PUT("/pages/:id/elements", app.PageHandler.UpdatePageElements)
+
+		v1.POST("/users/register", app.UserHandler.RegisterUser)
+		v1.POST("/users/login", app.UserHandler.LoginUser)
 	}
 
 	return router
