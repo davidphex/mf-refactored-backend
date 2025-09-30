@@ -2,6 +2,7 @@ package services
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 	"os"
 
@@ -23,10 +24,19 @@ type AlbumService interface {
 type albumService struct {
 	albumRepo repository.AlbumRepository
 	photoRepo repository.PhotoRepository
+	pageRepo  repository.PagesRepository
 }
 
-func NewAlbumService(albumRepo repository.AlbumRepository, photoRepo repository.PhotoRepository) AlbumService {
-	return &albumService{albumRepo: albumRepo, photoRepo: photoRepo}
+func NewAlbumService(
+	albumRepo repository.AlbumRepository,
+	photoRepo repository.PhotoRepository,
+	pageRepo repository.PagesRepository,
+) AlbumService {
+	return &albumService{
+		albumRepo: albumRepo,
+		photoRepo: photoRepo,
+		pageRepo:  pageRepo,
+	}
 }
 
 func (s *albumService) GetAllAlbums() (*[]models.Album, error) {
@@ -58,11 +68,13 @@ func (s *albumService) GeneratePDF(albumId string) ([]byte, error) {
 		return nil, nil // Album not found
 	}
 
-	// Get the album photos
-	photos, err := s.photoRepo.GetByAlbumId(albumId)
+	// Get pages for the album
+	pages, err := s.pageRepo.GetByAlbumId(albumId)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("Pages fetched for album:", len(*pages))
 
 	// Prepare the HTML template
 	tmpl, err := template.ParseFiles("internal/templates/index.html")
@@ -75,11 +87,11 @@ func (s *albumService) GeneratePDF(albumId string) ([]byte, error) {
 	err = tmpl.Execute(&htmlBuffer, struct {
 		Title       string
 		Description string
-		Photos      []*models.Photo
+		Pages       *[]models.AlbumPage
 	}{
 		Title:       album.Title,
 		Description: album.Description,
-		Photos:      photos,
+		Pages:       pages,
 	})
 	if err != nil {
 		return nil, err

@@ -41,7 +41,7 @@ func New(cfg Config, client *mongo.Client) *Application {
 	pageRepo := repository.NewPagesRepository(db)
 	photoRepo := repository.NewPhotoRepository(db, cld)
 
-	albumService := services.NewAlbumService(albumRepo, photoRepo)
+	albumService := services.NewAlbumService(albumRepo, photoRepo, pageRepo)
 	albumHandler := handlers.NewAlbumHandler(albumService)
 
 	pageService := services.NewPagesService(pageRepo, albumRepo)

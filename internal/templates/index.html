@@ -7,12 +7,43 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="photos">
-        {{range .Photos}}
-        <div class="photo">
-            <img src="{{.Source}}" alt="Photo">
+    {{range .Pages}}
+
+    {{if eq .Type "normal"}}
+        <div class="large-album-page"> 
+            {{range .Elements}}
+            <img 
+                class="album-element"
+                src="{{.Src}}"
+                alt="{{.Alt}}"
+                style="
+                    width: {{.Width}}%;
+                    height: {{.Height}}%;
+                    top: {{.Top}}%;
+                    left: {{.Left}}%;
+                "
+            />
+            {{end}}
+            <p class="water-mark">FOR DEMO PURPOSES ONLY</p>
         </div>
-        {{end}}
-    </div>
+    {{else}}
+        <div class="album-page">
+            {{range .Elements}}
+            <img 
+                class="album-element"
+                src="{{.Src}}"
+                alt="{{.Alt}}"
+                style="
+                    width: {{.Width}}vw;
+                    height: {{.Height}}vh;
+                    top: {{.Top}}vh;
+                    left: {{.Left}}vw;
+                "
+            />
+            {{end}}
+            <p class="water-mark">FOR DEMO PURPOSES ONLY</p>
+        </div>
+    {{end}}
+    {{end}}
 </body>
 </html>
