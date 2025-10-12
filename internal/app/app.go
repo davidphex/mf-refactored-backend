@@ -25,6 +25,7 @@ type Application struct {
 	PageHandler  *handlers.PageHandler
 	PhotoHandler *handlers.PhotoHandler
 	UserHandler  *handlers.UserHandler
+	UserService  services.UserService
 }
 
 func New(cfg Config, client *mongo.Client) *Application {
@@ -62,6 +63,7 @@ func New(cfg Config, client *mongo.Client) *Application {
 		PageHandler:  pageHandler,
 		PhotoHandler: photoHandler,
 		UserHandler:  userHandler,
+		UserService:  userService,
 	}
 }
 
@@ -71,28 +73,35 @@ func (app *Application) setupRoutes() http.Handler {
 	v1 := router.Group("/api/v1")
 	{
 		v1.GET("/health", handlers.HealthCheck)
-		v1.GET("/albums", app.AlbumHandler.GetAllAlbums)
-		v1.GET("/albums/:id", app.AlbumHandler.GetAlbumByID)
-		v1.POST("/albums", app.AlbumHandler.InsertAlbum)
-		v1.PUT("/albums/:id", app.AlbumHandler.UpdateAlbum)
-		v1.DELETE("/albums/:id", app.AlbumHandler.DeleteAlbum)
-		v1.GET("/albums/:id/pages", app.PageHandler.GetAlbumPages)
-		v1.GET("/albums/:id/export", app.AlbumHandler.ExportAlbum)
-
-		v1.POST("/albums/:id/photos", app.PhotoHandler.UploadPhoto)
-		v1.GET("/albums/:id/photos", app.PhotoHandler.GetAlbumPhotos)
-
-		v1.GET("/photos/:id", app.PhotoHandler.GetPhoto)
-
-		v1.GET("/pages/:id", app.PageHandler.GetPage)
-		v1.POST("/pages", app.PageHandler.InsertPage)
-		v1.PUT("/pages/:id", app.PageHandler.UpdatePage)
-		v1.DELETE("/pages/:id", app.PageHandler.DeletePage)
-
-		v1.PUT("/pages/:id/elements", app.PageHandler.UpdatePageElements)
 
 		v1.POST("/users/register", app.UserHandler.RegisterUser)
 		v1.POST("/users/login", app.UserHandler.LoginUser)
+	}
+
+	secureGroup := v1.Group("/")
+	secureGroup.Use(app.AuthMiddleware())
+	{
+		secureGroup.GET("/albums", app.AlbumHandler.GetAllAlbums)
+		secureGroup.GET("/albums/:id", app.AlbumHandler.GetAlbumByID)
+		secureGroup.POST("/albums", app.AlbumHandler.InsertAlbum)
+		secureGroup.PUT("/albums/:id", app.AlbumHandler.UpdateAlbum)
+		secureGroup.DELETE("/albums/:id", app.AlbumHandler.DeleteAlbum)
+		secureGroup.GET("/albums/:id/pages", app.PageHandler.GetAlbumPages)
+		secureGroup.GET("/albums/:id/export", app.AlbumHandler.ExportAlbum)
+
+		secureGroup.POST("/albums/:id/photos", app.PhotoHandler.UploadPhoto)
+		secureGroup.GET("/albums/:id/photos", app.PhotoHandler.GetAlbumPhotos)
+
+		secureGroup.GET("/photos/:id", app.PhotoHandler.GetPhoto)
+
+		secureGroup.GET("/pages/:id", app.PageHandler.GetPage)
+		secureGroup.POST("/pages", app.PageHandler.InsertPage)
+		secureGroup.PUT("/pages/:id", app.PageHandler.UpdatePage)
+		secureGroup.DELETE("/pages/:id", app.PageHandler.DeletePage)
+
+		secureGroup.PUT("/pages/:id/elements", app.PageHandler.UpdatePageElements)
+
+		secureGroup.GET("/users/:id", app.UserHandler.GetUser)
 	}
 
 	return router

@@ -101,3 +101,23 @@ func (h *UserHandler) LoginUser(c *gin.Context) {
 		Token: tokenString,
 	})
 }
+
+func (h *UserHandler) GetUser(c *gin.Context) {
+	userId := c.Param("id")
+	if userId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "User ID is required"})
+		return
+	}
+
+	user, err := h.service.GetUserById(userId)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user: " + err.Error()})
+		return
+	}
+	if user == nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
