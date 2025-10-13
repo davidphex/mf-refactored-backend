@@ -9,6 +9,7 @@ import (
 	"github.com/davidphex/memoryframe-backend/internal/handlers"
 	"github.com/davidphex/memoryframe-backend/internal/repository"
 	"github.com/davidphex/memoryframe-backend/internal/services"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -69,6 +70,8 @@ func New(cfg Config, client *mongo.Client) *Application {
 
 func (app *Application) setupRoutes() http.Handler {
 	router := gin.Default()
+
+	router.Use(cors.Default())
 
 	v1 := router.Group("/api/v1")
 	{
