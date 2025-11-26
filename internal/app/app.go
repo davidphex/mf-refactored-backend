@@ -71,7 +71,12 @@ func New(cfg Config, client *mongo.Client) *Application {
 func (app *Application) setupRoutes() http.Handler {
 	router := gin.Default()
 
-	router.Use(cors.Default())
+	cors_config := cors.DefaultConfig()
+	cors_config.AllowAllOrigins = true
+	cors_config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
+
+	//router.Use(cors.Default())
+	router.Use(cors.New(cors_config))
 
 	v1 := router.Group("/api/v1")
 	{
