@@ -77,3 +77,20 @@ func (h *PhotoHandler) GetPhoto(c *gin.Context) {
 
 	c.JSON(200, photo)
 }
+
+func (h *PhotoHandler) DeletePhoto(c *gin.Context) {
+	photoId := c.Param("id")
+
+	if photoId == "" {
+		c.JSON(400, gin.H{"error": "Photo ID is required"})
+		return
+	}
+
+	err := h.service.DeletePhoto(photoId)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to delete photo: " + err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "Photo deleted successfully"})
+}

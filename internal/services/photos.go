@@ -11,6 +11,7 @@ type PhotoService interface {
 	UploadPhoto(fileHeader *multipart.FileHeader, albumId string) (string, error)
 	GetPhotosByAlbumId(albumId string) ([]*models.Photo, error)
 	GetPhoto(photoId string) (*models.Photo, error)
+	DeletePhoto(photoId string) error
 }
 
 type photoService struct {
@@ -52,4 +53,8 @@ func (s *photoService) GetPhotosByAlbumId(albumId string) ([]*models.Photo, erro
 
 func (s *photoService) GetPhoto(photoId string) (*models.Photo, error) {
 	return s.photoRepo.Get(photoId)
+}
+
+func (s *photoService) DeletePhoto(photoId string) error {
+	return s.photoRepo.Delete(photoId)
 }

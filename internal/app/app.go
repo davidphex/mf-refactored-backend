@@ -101,6 +101,7 @@ func (app *Application) setupRoutes() http.Handler {
 		secureGroup.GET("/albums/:id/photos", app.PhotoHandler.GetAlbumPhotos)
 
 		secureGroup.GET("/photos/:id", app.PhotoHandler.GetPhoto)
+		secureGroup.DELETE("/photos/:id", app.PhotoHandler.DeletePhoto)
 
 		secureGroup.GET("/pages/:id", app.PageHandler.GetPage)
 		secureGroup.POST("/pages", app.PageHandler.InsertPage)

@@ -124,5 +124,26 @@ func (r *photoRepository) Update(photo *models.Photo) error {
 
 func (r *photoRepository) Delete(photoId string) error {
 	// TODO: Implement photo deletion logic
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	photoObjectId, err := bson.ObjectIDFromHex(photoId)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.Collection(COLLECTION_NAME_PHOTOS).DeleteOne(ctx, bson.M{"_id": photoObjectId})
+	if err != nil {
+		return err
+	}
+
+	// Delete the photo from Cloudinary
+	_, err = r.cld.Upload.Destroy(ctx, uploader.DestroyParams{
+		PublicID: photoId,
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
