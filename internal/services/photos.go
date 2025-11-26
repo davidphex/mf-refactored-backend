@@ -8,7 +8,7 @@ import (
 )
 
 type PhotoService interface {
-	UploadPhoto(fileHeader *multipart.FileHeader, albumId string) error
+	UploadPhoto(fileHeader *multipart.FileHeader, albumId string) (string, error)
 	GetPhotosByAlbumId(albumId string) ([]*models.Photo, error)
 	GetPhoto(photoId string) (*models.Photo, error)
 }
@@ -22,11 +22,11 @@ func NewPhotoService(photoRepo repository.PhotoRepository, albumRepo repository.
 	return &photoService{photoRepo: photoRepo, albumRepo: albumRepo}
 }
 
-func (s *photoService) UploadPhoto(fileHeader *multipart.FileHeader, albumId string) error {
+func (s *photoService) UploadPhoto(fileHeader *multipart.FileHeader, albumId string) (string, error) {
 
 	file, err := fileHeader.Open()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	fileName := fileHeader.Filename
@@ -34,16 +34,16 @@ func (s *photoService) UploadPhoto(fileHeader *multipart.FileHeader, albumId str
 	// Call the photo repository to handle the upload
 	photoId, err := s.photoRepo.Insert(file, fileName, albumId)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Update the album to include the new photo
 	err = s.albumRepo.AddPhotoToAlbum(albumId, photoId)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return photoId, nil
 }
 
 func (s *photoService) GetPhotosByAlbumId(albumId string) ([]*models.Photo, error) {

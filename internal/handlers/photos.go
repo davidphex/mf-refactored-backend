@@ -26,13 +26,20 @@ func (h *PhotoHandler) UploadPhoto(c *gin.Context) {
 		return
 	}
 
-	err = h.service.UploadPhoto(fileHeader, albumId)
+	photoId, err := h.service.UploadPhoto(fileHeader, albumId)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Failed to upload photo: " + err.Error()})
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "Photo uploaded successfully"})
+	photo, err := h.service.GetPhoto(photoId)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to fetch uploaded photo: " + err.Error()})
+		return
+	}
+
+	// Return the uploaded photo details
+	c.JSON(200, photo)
 }
 
 func (h *PhotoHandler) GetAlbumPhotos(c *gin.Context) {
